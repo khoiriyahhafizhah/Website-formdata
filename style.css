@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 50px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: auto;
+  }
+  input, textarea {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 16px;
+  }
+  button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .text {
+    display: flex;
+    justify-content: center; /* Center iframe horizontally */
+    align-items: center;     /* Center iframe vertically */
+    margin: 20px 0;          /* Add vertical margin for spacing */
+  }
+  
+  iframe {
+    border: 0;               /* Remove default border */
+    width: 100%;             /* Make iframe full width of its container */
+    max-width: 600px;        /* Set a maximum width */
+    height: 400px;           /* Set a fixed height */
+    border-radius: 8px;     /* Optional: round corners */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Optional: add shadow */
+  }

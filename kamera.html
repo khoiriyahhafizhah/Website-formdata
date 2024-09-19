@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Gambar melalui Kamera dengan Lokasi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Form Data</h1>
+  
+  <!-- Form untuk mengambil gambar -->
+  <form id="imageForm" enctype="multipart/form-data">
+    <label for="name">Nama:</label>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="message">Pesan:</label>
+    <textarea id="message" name="message" required></textarea><br><br>
+
+    <label for="cameraInput">Ambil gambar:</label>
+    <input type="file" id="cameraInput" accept="image/*" capture="camera" required><br><br>
+
+    <img id="preview" alt="Gambar Preview" width="200"><br><br>
+
+    <p id="locationInfo">Menunggu izin untuk akses lokasi...</p> <!-- Tampilkan status lokasi -->
+
+    <button type="submit">Kirim</button>
+  </form>
+
+  <script>
+    let latitude = null;
+    let longitude = null;
+
+    // Fungsi untuk mendapatkan lokasi pengguna
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            document.getElementById('locationInfo').innerText = `Lokasi ditemukan: (${latitude}, ${longitude})`;
+          },
+          function(error) {
+            console.error('Error mendapatkan lokasi:', error);
+            document.getElementById('locationInfo').innerText = 'Gagal mendapatkan lokasi.';
+          }
+        );
+      } else {
+        document.getElementById('locationInfo').innerText = 'Geolocation tidak didukung oleh browser ini.';
+      }
+    }
+
+    // Panggil fungsi untuk mendapatkan lokasi segera setelah halaman dimuat
+    window.onload = getLocation;
+
+    // Menampilkan pratinjau gambar yang diambil
+    const cameraInput = document.getElementById('cameraInput');
+    const preview = document.getElementById('preview');
+
+    cameraInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onloadend = function() {
+        preview.src = reader.result; // Menampilkan gambar
+      }
+
+      if (file) {
+        reader.readAsDataURL(file); // Konversi gambar ke base64
+      }
+    });
+
+    // Fungsi untuk mengirimkan data ke Google Apps Script
+    document.getElementById('imageForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+      const file = cameraInput.files[0];
+      
+      if (!file) {
+        alert("Harap unggah gambar.");
+        return;
+      }
+
+      const reader = new FileReader();
+      
+      reader.onloadend = function() {
+        const base64Image = reader.result.split(',')[1]; // Mengambil base64 dari Data URL
+        
+        // Membuat objek form data
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('message', message);
+        formData.append('imageBase64', base64Image);
+
+        // Tambahkan data lokasi jika tersedia
+        if (latitude && longitude) {
+          formData.append('latitude', latitude);
+          formData.append('longitude', longitude);
+        } else {
+          formData.append('latitude', 'Lokasi tidak tersedia');
+          formData.append('longitude', 'Lokasi tidak tersedia');
+        }
+
+        // Kirim data ke Google Apps Script
+        fetch('https://script.google.com/macros/s/AKfycbyZz-CarlP7x3QSG_F1WRTYp7x2V6OkTLte1pKDYpGQeVvyPPthaii6fX_bV7CyuD0grg/exec', {
+          method: 'POST',
+          body: formData,
+        })
+        .then(response => response.text())
+        .then(result => {
+          alert(result); // Menampilkan hasil dari server
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+
+      reader.readAsDataURL(file); // Konversi gambar ke base64
+    });
+  </script>
+</body>
+</html>
